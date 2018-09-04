@@ -1,0 +1,155 @@
+3. Экспериментируем со вставкой некорректных данных
+(отрицательная цена? количество на складе менее нуля? пустой артикул?).
+////////////
+БД MySQL
+
+Запрос на вставку товара с отрицательной ценой:
+INSERT INTO `products` (`name`, `code`, `image`, `price`, `sale_date`, `amount`, `weight`)
+VALUES ('Xiaomi redmi 4x', '11kqls01', 'https://images/redmi4x.jpg', -8590, '2018-01-17', 3, 150);
+ошибка:
+[2018-09-04 14:36:50] [22001][1264] Data truncation: Out of range value for column 'price' at row 1
+
+Запрос на вставку товара. Количесвто товара меньше нуля:
+INSERT INTO `products` (`name`, `code`, `image`, `price`, `sale_date`, `amount`, `weight`)
+VALUES ('Xiaomi redmi 4x', '11kqls01', 'https://images/redmi4x.jpg', 8590, '2018-01-17', -3, 150);
+ошибка:
+[2018-09-04 14:38:39] [22001][1264] Data truncation: Out of range value for column 'amount' at row 1
+
+Запрос на вставку товара с пустым артикулом:
+INSERT INTO `products` (`name`, `image`, `price`, `sale_date`, `amount`, `weight`)
+VALUES ('Xiaomi redmi 4x', 'https://images/redmi4x.jpg', 8590, '2018-01-17', 3, 150);
+ошибка:
+[2018-09-04 14:41:11] [HY000][1364] Field 'code' doesn't have a default value
+
+Запрос на вставку товара с артикулом NULL:
+INSERT INTO `products` (`name`, `code`,`image`, `price`, `sale_date`, `amount`, `weight`)
+VALUES ('Xiaomi redmi 4x', NULL,'https://images/redmi4x.jpg', 8590, '2018-01-17', 3, 150);
+ошибка:
+[2018-09-04 14:43:26] [23000][1048] Column 'code' cannot be null
+
+Запрос на вставку товара с уже существующим артикулом:
+INSERT INTO `products` (`name`, `code`,`image`, `price`, `sale_date`, `amount`, `weight`)
+VALUES ('Xiaomi redmi 4x', '37fopu14','https://images/redmi4x.jpg', 8590, '2018-01-17', 3, 150);
+ошибка:
+[2018-09-04 14:46:38] [23000][1062] Duplicate entry '37fopu14' for key 'code'
+
+Запрос на вставку товара. Значение веса товара 150000 превышает 2 байта:
+INSERT INTO `products` (`name`, `code`,`image`, `price`, `sale_date`, `amount`, `weight`)
+VALUES ('Xiaomi redmi 4x', '11kqls01','https://images/redmi4x.jpg', 8590, '2018-01-17', 3, 150000);
+ошибка:
+[2018-09-04 15:12:00] [22001][1264] Data truncation: Out of range value for column 'weight' at row 1
+
+Запрос на вставку товара, у которого цена имеет больше 2х цифр после запятой:
+INSERT INTO `products` (`name`, `code`,`image`, `price`, `sale_date`, `amount`, `weight`)
+VALUES ('Xiaomi redmi 4x', '11kqls01','https://images/redmi4x.jpg', 8590.357, '2018-01-17', 3, 150);
+значение цены будет округлено до 8590.36
+
+Запрос на вставку с неверной датой:
+INSERT INTO `products` (`name`, `code`,`image`, `price`, `sale_date`, `amount`, `weight`)
+VALUES ('Xiaomi redmi 4x', '11kqlр21','https://images/redmi4x.jpg', 8590.357, '2018-01-35', 3, 150);
+ошибка:
+[2018-09-04 15:23:11] [22001][1292] Data truncation: Incorrect date value: '2018-01-35' for column 'sale_date' at row 1
+
+////////////
+БД Postgres
+
+Запрос на вставку товара с отрицательной ценой:
+INSERT INTO "products" ("name", "code", "image", "price", "sale_date", "amount", "weight")
+VALUES ('Xiaomi redmi 4x', '11kqls01', 'https://images/redmi4x.jpg', -8590, '2018-01-17', 3, 150);
+Товар вставился без ошибок, т.к. нет UNSIGNED
+
+Запрос на вставку товара с отрицательным количеством:
+INSERT INTO "products" ("name", "code", "image", "price", "sale_date", "amount", "weight")
+VALUES ('Xiaomi redmi 4x', '11kqоs01', 'https://images/redmi4x.jpg', 8590, '2018-01-17', -3, 150);
+Товар вставился без ошибок, т.к. нет UNSIGNED
+
+Запрос на вставку товара без указания артикула товара:
+INSERT INTO "products" ("name", "image", "price", "sale_date", "amount", "weight")
+VALUES ('Xiaomi redmi 4x', 'https://images/redmi4x.jpg', 8590, '2018-01-17', 3, 150);
+ошибка:
+[2018-09-04 15:36:56] [23502] ERROR: null value in column "code" violates not-null constraint
+[2018-09-04 15:36:56] Подробности: Failing row contains (7, Xiaomi redmi 4x, null, https://images/redmi4x.jpg, 8590.00, 2018-01-17, 3, 150).
+
+Запрос на вставку товара с артикулом NULL:
+INSERT INTO "products" ("name", "code", "image", "price", "sale_date", "amount", "weight")
+VALUES ('Xiaomi redmi 4x', NULL,'https://images/redmi4x.jpg', 8590, '2018-01-17', 3, 150);
+ошибка:
+[2018-09-04 15:38:32] [23502] ERROR: null value in column "code" violates not-null constraint
+[2018-09-04 15:38:32] Подробности: Failing row contains (8, Xiaomi redmi 4x, null, https://images/redmi4x.jpg, 8590.00, 2018-01-17, 3, 150).
+
+Запрос на вставку товара с уже существующим артикулом:
+INSERT INTO "products" ("name", "code", "image", "price", "sale_date", "amount", "weight")
+VALUES ('Xiaomi redmi 4x', '37fopu14','https://images/redmi4x.jpg', 8590, '2018-01-17', 3, 150);
+ошибка:
+[2018-09-04 15:39:42] [23505] ERROR: duplicate key value violates unique constraint "products_code_key"
+[2018-09-04 15:39:42] Подробности: Key (code)=(37fopu14) already exists.
+
+Запрос на вставку товара. Значение веса товара 150000 превышает 2 байта:
+INSERT INTO "products" ("name", "code", "image", "price", "sale_date", "amount", "weight")
+VALUES ('Xiaomi redmi 4x', '11kqls01','https://images/redmi4x.jpg', 8590, '2018-01-17', 3, 150000);
+ошибка:
+[2018-09-04 15:40:37] [22003] ERROR: smallint out of range
+
+Запрос на вставку товара с ценой 8590.357:
+INSERT INTO "products" ("name", "code", "image", "price", "sale_date", "amount", "weight")
+VALUES ('Xiaomi redmi 4x', '11kqls01','https://images/redmi4x.jpg', 8590.357, '2018-01-17', 3, 150);
+вставилось. Цена округлилась до 8590.36.
+
+Запрос на вставку товара. Указана некорректная дата:
+INSERT INTO "products" ("name", "code", "image", "price", "sale_date", "amount", "weight")
+VALUES ('Xiaomi redmi 4x', '11kqlр21','https://images/redmi4x.jpg', 8590, '2018-01-35', 3, 150);
+ошибка:
+[2018-09-04 15:43:56] [22008] ERROR: date/time field value out of range: "2018-01-35"
+[2018-09-04 15:43:56] Подсказка: Perhaps you need a different "datestyle" setting.
+[2018-09-04 15:43:56] Позиция: 167
+
+///////////
+БД SQLite
+
+Запрос на вставку товара с отрицательной ценой:
+INSERT INTO `products` (`name`, `code`, `image`, `price`, `sale_date`, `amount`, `weight`)
+VALUES ('Xiaomi redmi 4x', '11kqls01', 'https://images/redmi4x.jpg', -8590, '2018-01-17', 3, 150);
+Товар вставился без ошибок, т.к. нет UNSIGNED
+
+Запрос на вставку товара. Количество на складе меньше нуля:
+INSERT INTO `products` (`name`, `code`, `image`, `price`, `sale_date`, `amount`, `weight`)
+VALUES ('Xiaomi redmi 4x', '11kqоs01', 'https://images/redmi4x.jpg', 8590, '2018-01-17', -3, 150);
+Товар вставился без ошибок, т.к. нет UNSIGNED
+
+Запрос на вставку товара без указания артикула:
+INSERT INTO `products` (`name`, `image`, `price`, `sale_date`, `amount`, `weight`)
+VALUES ('Xiaomi redmi 4x', 'https://images/redmi4x.jpg', 8590, '2018-01-17', 3, 150);
+ошибка:
+[2018-09-04 16:24:23] [19] [SQLITE_CONSTRAINT_NOTNULL]  A NOT NULL constraint failed (NOT NULL constraint failed: products.code)
+
+Запрос на вставку товара с артикулом NULL:
+INSERT INTO `products` (`name`, `code`, `image`, `price`, `sale_date`, `amount`, `weight`)
+VALUES ('Xiaomi redmi 4x', NULL,'https://images/redmi4x.jpg', 8590, '2018-01-17', 3, 150);
+ошибка:
+[2018-09-04 16:25:46] [19] [SQLITE_CONSTRAINT_NOTNULL]  A NOT NULL constraint failed (NOT NULL constraint failed: products.code)
+
+Запрос на вставку товара с уже существующим артикулом:
+INSERT INTO `products` (`name`, `code`, `image`, `price`, `sale_date`, `amount`, `weight`)
+VALUES ('Xiaomi redmi 4x', '37fopu14','https://images/redmi4x.jpg', 8590, '2018-01-17', 3, 150);
+ошибка:
+[2018-09-04 16:26:42] [19] [SQLITE_CONSTRAINT_UNIQUE]  A UNIQUE constraint failed (UNIQUE constraint failed: products.code)
+
+Запрос на вставку товара весом 150000:
+INSERT INTO `products` (`name`, `code`, `image`, `price`, `sale_date`, `amount`, `weight`)
+VALUES ('Xiaomi redmi 4x', '11kqls01','https://images/redmi4x.jpg', 8590, '2018-01-17', 3, 150000);
+Товар вставился без ошибок, т.к. объём памяти для хранения зависит от значения.
+
+Запрос на вставку товара, цена у которого имеет 3 цифры после запятой:
+INSERT INTO `products` (`name`, `code`, `image`, `price`, `sale_date`, `amount`, `weight`)
+VALUES ('Xiaomi redmi 4x', '11kqls01','https://images/redmi4x.jpg', 8590.357, '2018-01-17', 3, 150);
+Вставился без ошибок, цена без округления.
+
+Запрос на вставку товара. Указана некорректная дата:
+INSERT INTO `products` (`name`, `code`, `image`, `price`, `sale_date`, `amount`, `weight`)
+VALUES ('Xiaomi redmi 4x', '11kqlр21','https://images/redmi4x.jpg', 8590, '2018-01-35', 3, 150);
+Товар вставился без ошибок, т.к. дата хранится как текст.
+Для типа нужно указать NOT NULL, а в запросе добавить DATE:
+INSERT INTO `products` (`name`, `code`, `image`, `price`, `sale_date`, `amount`, `weight`)
+VALUES ('Xiaomi redmi 4x', '11kqlр21','https://images/redmi4x.jpg', 8590, DATE('2018-01-35'), 3, 150);
+ошибка:
+[2018-09-04 16:39:10] [19] [SQLITE_CONSTRAINT_NOTNULL]  A NOT NULL constraint failed (NOT NULL constraint failed: products.sale_date)

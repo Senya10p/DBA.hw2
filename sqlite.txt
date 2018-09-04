@@ -1,0 +1,29 @@
+1. Создаём таблицу товаров.
+
+CREATE TABLE `products` (
+  `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+  `name` TEXT,
+  `code` TEXT NOT NULL UNIQUE,
+  `image` TEXT,
+  `price` NUMERIC,
+  `sale_date` TEXT NOT NULL,
+  `amount` INTEGER,
+  `weight` INTEGER
+);
+
+2. Добавляем записи в таблицу:
+
+INSERT INTO `products` (`name`, `code`, `image`, `price`, `sale_date`, `amount`, `weight`)
+VALUES ('iPhone X', '15jkjd12', 'https://images/iphone_x.jpg', 78990, '2017-11-13', 53, 174);
+
+INSERT INTO `products` (`name`, `code`, `image`, `price`, `sale_date`, `amount`, `weight`)
+VALUES ('Nokia 8', '27ffdh34', 'https://images/nokia_8.jpg', 25890, '2018-04-25', 17, 160);
+
+INSERT INTO `products` (`name`, `code`, `image`, `price`, `sale_date`, `amount`, `weight`)
+VALUES ('GoPro HERO 6', '21fdjk83', 'https://images/gopro-hero6.jpg', 28400, '2018-02-15', 21, 117);
+
+INSERT INTO `products` (`name`, `code`, `image`, `price`, `sale_date`, `amount`, `weight`)
+VALUES ('DJI Phantom 4 PRO', '37fopu14', 'https://images/phantom4pro.jpg', 98290, '2018-05-27', 5, 1388);
+
+Запрос на выбор всех записей из таблицы:
+SELECT * FROM `products`;
